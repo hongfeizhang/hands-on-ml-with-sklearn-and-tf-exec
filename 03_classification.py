@@ -51,8 +51,6 @@ if __name__ == "__main__":
     y_test_5=(y_test==5)
     print(y_test_5)
 
-
-
     sgd_clf=SGDClassifier(random_state=42)
     #print(type(sgd_clf))
     sgd_clf.fit(X_train,y_train_5)
