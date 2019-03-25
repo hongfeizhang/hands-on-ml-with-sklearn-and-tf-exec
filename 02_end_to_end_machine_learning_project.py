@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import StratifiedShuffleSplit
+from pandas.plotting import scatter_matrix
 
 HOUSING_PATH = "datasets/housing"
 
@@ -37,7 +38,22 @@ def stratified_shuffle_split(data,n_splits=1,test_size=0.2,random_state=42):
     # print(housing["income_cat"].value_counts()/len(housing))
     # print(start_train_set["income_cat"].value_counts()/len(start_train_set))
     # print(start_test_set["income_cat"].value_counts()/len(start_test_set))
+    for set in (start_test_set,start_train_set):
+        set.drop(["income_cat"],axis=1,inplace=True)
     return start_train_set,start_test_set
+
+def data_clean():
+
+
+#查看每个属性与房价中位数的关联度
+def corr_matrix_special(data):
+    housing=data
+    corr_matrix = housing.corr()
+    print(corr_matrix["median_house_value"].sort_values(ascending=False))
+    attributes=["median_house_value","median_income",
+                "total_rooms","housing_median_age"]
+    scatter_matrix(housing[attributes],figsize=(12,8))
+    plt.show()
 
 if __name__ == "__main__":
     housing = load_housing_data()
@@ -48,12 +64,9 @@ if __name__ == "__main__":
 
     start_train_set,start_test_set=stratified_shuffle_split(housing)
 
-    for set in (start_test_set,start_train_set):
-        set.drop(["income_cat"],axis=1,inplace=True)
+    #housing = start_train_set
+    # corr_matrix_special(housing)
 
-    housing=start_train_set
-    corr_matrix=housing.corr()
-    #for
-
-
+    housing=start_train_set.drop("median_house_value",axis=1)
+    housing_labels=start_train_set["median_house_value"].copy()
 
