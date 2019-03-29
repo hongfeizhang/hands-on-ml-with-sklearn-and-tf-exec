@@ -8,6 +8,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.model_selection import StratifiedShuffleSplit
 from pandas.plotting import scatter_matrix
 
+try:
+    from sklearn.impute import
+
 HOUSING_PATH = "datasets/housing"
 
 
@@ -42,7 +45,10 @@ def stratified_shuffle_split(data,n_splits=1,test_size=0.2,random_state=42):
         set.drop(["income_cat"],axis=1,inplace=True)
     return start_train_set,start_test_set
 
-def data_clean():
+def data_clean(data):
+    start_train_set=data
+    housing=start_train_set
+
 
 
 #查看每个属性与房价中位数的关联度
