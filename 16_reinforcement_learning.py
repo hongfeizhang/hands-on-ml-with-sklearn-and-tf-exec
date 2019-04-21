@@ -6,4 +6,5 @@ if __name__ == "__main__":
     #print(obs)
 
     #env.render()
-    img=env.render(mode)
+    img=env.render(mode="rgb_array")
+    print(img.shape)
