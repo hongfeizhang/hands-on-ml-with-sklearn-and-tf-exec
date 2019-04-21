@@ -7,9 +7,11 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import StratifiedShuffleSplit
 from pandas.plotting import scatter_matrix
+from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import OrdinalEncoder
+from sklearn.preprocessing import OneHotEncoder
 
-try:
-    from sklearn.impute import
+from sklearn.preprocessing import Imputer
 
 HOUSING_PATH = "datasets/housing"
 
@@ -50,6 +52,16 @@ def data_clean(data):
     housing=start_train_set
 
 
+def data_impute(data):
+    housing=data
+    imputer = Imputer(strategy="median")
+    housing_num = housing.drop("ocean_proximity", axis=1)
+    imputer.fit(housing_num)
+    #print(imputer.statistics_)
+    #print(housing_num.median().values)
+    X=imputer.transform(housing_num)
+    housing_tr=pd.DataFrame(X,columns=housing_num.columns)
+    return  X
 
 #查看每个属性与房价中位数的关联度
 def corr_matrix_special(data):
@@ -58,7 +70,7 @@ def corr_matrix_special(data):
     print(corr_matrix["median_house_value"].sort_values(ascending=False))
     attributes=["median_house_value","median_income",
                 "total_rooms","housing_median_age"]
-    scatter_matrix(housing[attributes],figsize=(12,8))
+    scatter_matrix(housing[attributes] ,figsize=(12,8))
     plt.show()
 
 if __name__ == "__main__":
@@ -75,4 +87,23 @@ if __name__ == "__main__":
 
     housing=start_train_set.drop("median_house_value",axis=1)
     housing_labels=start_train_set["median_house_value"].copy()
+
+    #data_impute(housing)
+    housing_cat = housing[['ocean_proximity']]
+    #print(housing_cat)
+    ordinal_encoder=OrdinalEncoder()
+    housing_cat_encoded=ordinal_encoder.fit_transform(housing_cat)
+    #print(housing_cat_encoded[:10])
+    #print(ordinal_encoder.categories_)
+
+    cat_encoder=OneHotEncoder()
+    housing_cat_1hot=cat_encoder.fit_transform(housing_cat)
+    #print(housing_cat_1hot)
+    #print(housing_cat_1hot.toarray())
+    #print(cat_encoder.categories_)
+
+
+
+    #housing_cat_encoded,housing_categoried=housing_cat.
+
 
