@@ -102,8 +102,6 @@ if __name__ == "__main__":
     #print(housing_cat_1hot.toarray())
     #print(cat_encoder.categories_)
 
-
-
     #housing_cat_encoded,housing_categoried=housing_cat.
 
 
