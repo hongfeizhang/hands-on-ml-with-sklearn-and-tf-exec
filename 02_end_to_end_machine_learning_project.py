@@ -10,6 +10,9 @@ from pandas.plotting import scatter_matrix
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.preprocessing import OneHotEncoder
+from sklearn.base import  BaseEstimator,TransformerMixin
+import pysnooper
+
 
 from sklearn.preprocessing import Imputer
 
@@ -30,6 +33,7 @@ def split_train_test(data,test_ratio):
     train_set=shuffled_data[int(test_ratio*len(shuffled_data)):]
     return train_set,test_set
 
+@pysnooper.snoop()
 #将数据根据收入中位数的分布  取样为训练集和测试集
 def stratified_shuffle_split(data,n_splits=1,test_size=0.2,random_state=42):
     housing=data
@@ -73,12 +77,22 @@ def corr_matrix_special(data):
     scatter_matrix(housing[attributes] ,figsize=(12,8))
     plt.show()
 
+'''
+class CombinedAttributesAder(BaseEstimator, TransformerMixin,housing):
+    rooms_ix, bedrooms_ix, population_ix, household_ix = [
+        list(housing.columns).index(col)
+        for col in ("total_rooms", "total_bedrooms", "population", "households")]
+
+        #def __init__(self,add_bedrooms_per_room=True):
+'''
+
 if __name__ == "__main__":
     housing = load_housing_data()
     #print(housing.head())
     #show_plot(housing)
     #train_set,test_set=split_train_test(housing,0.2)
     #train_set,test_set=train_test_split(housing,test_size=0.2,random_state=42)
+
 
     start_train_set,start_test_set=stratified_shuffle_split(housing)
 
@@ -96,12 +110,17 @@ if __name__ == "__main__":
     #print(housing_cat_encoded[:10])
     #print(ordinal_encoder.categories_)
 
-    cat_encoder=OneHotEncoder()
-    housing_cat_1hot=cat_encoder.fit_transform(housing_cat)
+    cat_encoder = OneHotEncoder(sparse=False)
+    housing_cat_1hot = cat_encoder.fit_transform(housing_cat)
     #print(housing_cat_1hot)
     #print(housing_cat_1hot.toarray())
     #print(cat_encoder.categories_)
+    #print(housing.columns)
 
     #housing_cat_encoded,housing_categoried=housing_cat.
+
+
+
+
 
 
