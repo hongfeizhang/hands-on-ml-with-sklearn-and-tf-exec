@@ -14,6 +14,10 @@ from sklearn.preprocessing import  StandardScaler
 
 from sklearn.compose import ColumnTransformer
 from sklearn.linear_model import  LinearRegression
+from sklearn.tree import DecisionTreeRegressor
+
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_absolute_error
 
 HOUSING_PATH = "datasets/housing"
 
@@ -172,19 +176,29 @@ if __name__ == "__main__":
         ("cat", OneHotEncoder(), cat_attribs), #处理文本和类型数据，将类型数据编码为独热向量
     ])
 
-    housing_prepared = full_pipeline.fit_transform(housing)
-    # print(housing_prepared)
-    # print(housing_prepared.shape)
+    housing_prepared=full_pipeline.fit_transform(housing)
+    #print(housing_prepared)
+    #print(housing_prepared.shape)
+    lin_reg=LinearRegression()
+    lin_reg.fit(housing_prepared,housing_labels)
 
-    #线性回归
-    lin_reg = LinearRegression()
-    lin_reg.fit(housing_prepared, housing_labels)
+    #some_data = housing.iloc[:5]
+    #some_labels = housing_labels.iloc[:5]
+    #some_data_prepared = full_pipeline.transform(some_data)
+    #print("Predictions:", lin_reg.predict(some_data_prepared))
+    #print("Labels:",list(some_labels))
+    housing_predictions=lin_reg.predict(housing_prepared)
+    lin_mse=mean_squared_error(housing_labels,housing_predictions)
+    lin_rmse=np.sqrt(lin_mse)
+    print(lin_rmse)
 
-    some_data = housing.iloc[:5]
-    some_labels = housing_labels.iloc[:5]
-    some_data_prepared = full_pipeline.transform(some_data)
-    print("Predictions:", lin_reg.predict(some_data_prepared))
+    tree_reg=DecisionTreeRegressor(random_state=42)
+    tree_reg.fit(housing_prepared,housing_labels)
 
+    housing_predictions=tree_reg.predict(housing_prepared)
+    tree_mse=mean_squared_error(housing_labels,housing_predictions)
+    tree_rmse=np.sqrt(tree_mse)
+    print(tree_rmse)
 
 
 
