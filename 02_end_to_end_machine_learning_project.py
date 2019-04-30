@@ -18,6 +18,7 @@ from sklearn.tree import DecisionTreeRegressor
 
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
+from sklearn.model_selection import cross_val_score
 
 HOUSING_PATH = "datasets/housing"
 
@@ -77,7 +78,7 @@ def data_impute(data):
     return X
 
 
-# 查看每个属性与房价中位数的关联度
+# View the relevance of each attribute to the median price
 def corr_matrix_special(data):
     housing = data
     corr_matrix = housing.corr()
@@ -88,7 +89,7 @@ def corr_matrix_special(data):
     plt.show()
 
 
-# 增加额外的属性
+# Add extra attributes
 def add_extra_features(X, add_bedrooms_per_room=True):
     rooms_per_household = X[:, rooms_ix] / X[:, household_ix]
     population_per_household = X[:, population_ix] / X[:, household_ix]
@@ -102,7 +103,7 @@ def add_extra_features(X, add_bedrooms_per_room=True):
 
 
 # @pysnooper.snoop()
-# 增加额外的属性列
+# Add extra attribute columns
 def combine_attr_adder(housing):
     attr_adder = FunctionTransformer(add_extra_features, validate=False,
                                      kw_args={"add_bedrooms_per_room": False})
@@ -113,6 +114,12 @@ def combine_attr_adder(housing):
                                          "population_per_household"])
     # print(housing_extra_attribs.head())
     return housing_extra_attribs
+
+
+def display_scores(scores):
+    print("Scores:", scores)
+    print("Mean:", scores.mean())
+    print("Standard deviation:", scores.std())
 
 
 if __name__ == "__main__":
@@ -199,6 +206,10 @@ if __name__ == "__main__":
     tree_mse=mean_squared_error(housing_labels,housing_predictions)
     tree_rmse=np.sqrt(tree_mse)
     print(tree_rmse)
+
+    scores=cross_val_score(tree_reg,housing_prepared,housing_labels,
+                           scoring="neg_mean_squared_error", cv=10)
+    rmse_scores=np.sqrt(-scores)
 
 
 
