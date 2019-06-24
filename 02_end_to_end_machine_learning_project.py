@@ -15,10 +15,16 @@ from sklearn.preprocessing import  StandardScaler
 from sklearn.compose import ColumnTransformer
 from sklearn.linear_model import  LinearRegression
 from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import RandomForestRegressor
+
+from sklearn.externals import joblib
 
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import cross_val_score
+
+from sklearn.svm import SVR
+from sklearn.model_selection import GridSearchCV
 
 HOUSING_PATH = "datasets/housing"
 
@@ -186,30 +192,112 @@ if __name__ == "__main__":
     housing_prepared=full_pipeline.fit_transform(housing)
     #print(housing_prepared)
     #print(housing_prepared.shape)
+
+    '''
     lin_reg=LinearRegression()
-    lin_reg.fit(housing_prepared,housing_labels)
+    #lin_reg.fit(housing_prepared,housing_labels)
 
     #some_data = housing.iloc[:5]
     #some_labels = housing_labels.iloc[:5]
     #some_data_prepared = full_pipeline.transform(some_data)
     #print("Predictions:", lin_reg.predict(some_data_prepared))
     #print("Labels:",list(some_labels))
-    housing_predictions=lin_reg.predict(housing_prepared)
-    lin_mse=mean_squared_error(housing_labels,housing_predictions)
-    lin_rmse=np.sqrt(lin_mse)
-    print(lin_rmse)
+    #housing_predictions=lin_reg.predict(housing_prepared)
+    #lin_mse=mean_squared_error(housing_labels,housing_predictions)
+    #lin_rmse=np.sqrt(lin_mse)
+    #print(lin_rmse)
 
     tree_reg=DecisionTreeRegressor(random_state=42)
-    tree_reg.fit(housing_prepared,housing_labels)
+    #tree_reg.fit(housing_prepared,housing_labels)
 
-    housing_predictions=tree_reg.predict(housing_prepared)
-    tree_mse=mean_squared_error(housing_labels,housing_predictions)
-    tree_rmse=np.sqrt(tree_mse)
-    print(tree_rmse)
+    #housing_predictions=tree_reg.predict(housing_prepared)
+    #tree_mse=mean_squared_error(housing_labels,housing_predictions)
+    #tree_rmse=np.sqrt(tree_mse)
+    #print(tree_rmse)
 
+    
     scores=cross_val_score(tree_reg,housing_prepared,housing_labels,
                            scoring="neg_mean_squared_error", cv=10)
-    rmse_scores=np.sqrt(-scores)
 
+    tree_rmse_scores=np.sqrt(-scores)
+    display_scores(tree_rmse_scores)
 
+    line_scores=cross_val_score(lin_reg,housing_prepared,housing_labels,
+                                scoring="neg_mean_squared_error",cv=10)
 
+    line_rmse_scores=np.sqrt(-line_scores)
+    display_scores(line_rmse_scores)
+
+    forest_reg=RandomForestRegressor(n_estimators=10,random_state=42)
+    #print(forest_reg.fit(housing_prepared, housing_labels))
+
+    #housing_predictions=forest_reg.predict(housing_prepared)
+    #forest_mse = mean_squared_error(housing_labels, housing_predictions)
+    #forest_rmse = np.sqrt(forest_mse)
+    #print(forest_rmse)
+
+    forest_scores = cross_val_score(forest_reg, housing_prepared, housing_labels,
+                                    scoring="neg_mean_squared_error", cv=10)
+    forest_rmse_scores = np.sqrt(-forest_scores)
+    display_scores(forest_rmse_scores)
+
+    #保存模型
+    #joblib.dump(my_model,"my_model.pkl")
+
+    '''
+
+    '''
+    #param_grid告诉Scikit - Learn首先评估所有的列在第一个dict中
+    #的n_estimators和max_features的3×4 = 12种组合。
+    #然后尝试第二个dict中超参数的2×3 = 6种组合，这次会将超参
+    #数bootstrap设为False而不是True（后者是该超参数的默认值）。
+    param_grid = [
+        # try 12 (3×4) combinations of hyperparameters
+        {'n_estimators': [3, 10, 30], 'max_features': [2, 4, 6, 8]},
+        # then try 6 (2×3) combinations with bootstrap set as False
+        {'bootstrap': [False], 'n_estimators': [3, 10], 'max_features': [2, 3, 4]},
+    ]
+
+    forest_reg = RandomForestRegressor(random_state=42)
+    #网格搜索会探索12+6=18种RandomForestRegressor的超参数组合，会训练每个模
+    #型五次（因为用的是五折交叉验证）。换句话说，训练总共有18×5=90轮！
+    grid_search = GridSearchCV(forest_reg, param_grid, cv=5,
+                               scoring='neg_mean_squared_error', return_train_score=True)
+    grid_search.fit(housing_prepared, housing_labels)
+    print(grid_search.best_params_)
+    pd.DataFrame(grid_search.cv_results_)
+    '''
+    '''
+    param_distribs = {
+        'n_estimators': randint(low=1, high=200),
+        'max_features': randint(low=1, high=8),
+    }
+
+    forest_reg = RandomForestRegressor(random_state=42)
+    rnd_search = RandomizedSearchCV(forest_reg, param_distributions=param_distribs,
+                                    n_iter=10, cv=5, scoring='neg_mean_squared_error', random_state=42)
+    rnd_search.fit(housing_prepared, housing_labels)
+    cvres = rnd_search.cv_results_
+    for mean_score, params in zip(cvres["mean_test_score"], cvres["params"]):
+        print(np.sqrt(-mean_score), params)
+    feature_importances = grid_search.best_estimator_.feature_importances_
+    feature_importances
+
+    extra_attribs = ["rooms_per_hhold", "pop_per_hhold", "bedrooms_per_room"]
+    #cat_encoder = cat_pipeline.named_steps["cat_encoder"] # old solution
+    cat_encoder = full_pipeline.named_transformers_["cat"]
+    cat_one_hot_attribs = list(cat_encoder.categories_[0])
+    attributes = num_attribs + extra_attribs + cat_one_hot_attribs
+    sorted(zip(feature_importances, attributes), reverse=True)
+
+    final_model = grid_search.best_estimator_
+
+    X_test = start_test_set.drop("median_house_value", axis=1)
+    y_test = start_test_set["median_house_value"].copy()
+
+    X_test_prepared = full_pipeline.transform(X_test)
+    final_predictions = final_model.predict(X_test_prepared)
+
+    final_mse = mean_squared_error(y_test, final_predictions)
+    final_rmse = np.sqrt(final_mse)
+    '''
