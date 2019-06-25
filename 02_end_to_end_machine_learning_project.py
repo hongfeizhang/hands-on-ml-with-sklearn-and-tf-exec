@@ -243,14 +243,12 @@ if __name__ == "__main__":
 
     #保存模型
     #joblib.dump(my_model,"my_model.pkl")
-
     '''
 
-    '''
-    #param_grid告诉Scikit - Learn首先评估所有的列在第一个dict中
-    #的n_estimators和max_features的3×4 = 12种组合。
-    #然后尝试第二个dict中超参数的2×3 = 6种组合，这次会将超参
-    #数bootstrap设为False而不是True（后者是该超参数的默认值）。
+    # param_grid告诉Scikit - Learn首先评估所有的列在第一个dict中
+    # 的n_estimators和max_features的3×4 = 12种组合。
+    # 然后尝试第二个dict中超参数的2×3 = 6种组合，这次会将超参
+    # 数bootstrap设为False而不是True（后者是该超参数的默认值）。
     param_grid = [
         # try 12 (3×4) combinations of hyperparameters
         {'n_estimators': [3, 10, 30], 'max_features': [2, 4, 6, 8]},
@@ -259,15 +257,16 @@ if __name__ == "__main__":
     ]
 
     forest_reg = RandomForestRegressor(random_state=42)
-    #网格搜索会探索12+6=18种RandomForestRegressor的超参数组合，会训练每个模
-    #型五次（因为用的是五折交叉验证）。换句话说，训练总共有18×5=90轮！
+    # 网格搜索会探索12+6=18种RandomForestRegressor的超参数组合，会训练每个模
+    # 型五次（因为用的是五折交叉验证）。换句话说，训练总共有18×5=90轮！
     grid_search = GridSearchCV(forest_reg, param_grid, cv=5,
                                scoring='neg_mean_squared_error', return_train_score=True)
     grid_search.fit(housing_prepared, housing_labels)
     print(grid_search.best_params_)
     pd.DataFrame(grid_search.cv_results_)
+
     '''
-    '''
+    #随机搜索
     param_distribs = {
         'n_estimators': randint(low=1, high=200),
         'max_features': randint(low=1, high=8),
@@ -280,11 +279,13 @@ if __name__ == "__main__":
     cvres = rnd_search.cv_results_
     for mean_score, params in zip(cvres["mean_test_score"], cvres["params"]):
         print(np.sqrt(-mean_score), params)
+    '''
+
     feature_importances = grid_search.best_estimator_.feature_importances_
     feature_importances
 
     extra_attribs = ["rooms_per_hhold", "pop_per_hhold", "bedrooms_per_room"]
-    #cat_encoder = cat_pipeline.named_steps["cat_encoder"] # old solution
+    # cat_encoder = cat_pipeline.named_steps["cat_encoder"] # old solution
     cat_encoder = full_pipeline.named_transformers_["cat"]
     cat_one_hot_attribs = list(cat_encoder.categories_[0])
     attributes = num_attribs + extra_attribs + cat_one_hot_attribs
@@ -300,4 +301,3 @@ if __name__ == "__main__":
 
     final_mse = mean_squared_error(y_test, final_predictions)
     final_rmse = np.sqrt(final_mse)
-    '''
